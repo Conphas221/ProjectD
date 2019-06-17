@@ -51,7 +51,7 @@ namespace prototype_p2p
             {
                 if (e is IndexOutOfRangeException)
                 {
-                    MessageBox.Show("One or more public key files are missing from the designed role folders.\n\nPlease add the missing keys to ensure that the program will function correctly.");
+                    MessageBox.Show("One or more public key files are missing from the designated role folders.\n\nPlease add the missing keys to ensure that the program will function correctly.");
                 }
                 else
                 {
