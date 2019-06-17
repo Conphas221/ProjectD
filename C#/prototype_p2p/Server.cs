@@ -79,8 +79,7 @@ namespace prototype_p2p
             }
             catch(Exception w)
             {
-                Console.WriteLine(w);
-                MessageBox.Show("Something went wrong with obtaining external IP address, switching over to local IP.\n" + w);
+                MessageBox.Show("Something went wrong with obtaining external IP address, switching over to local IP.\n" + w.ToString());
                 return GetLocalIPAddress();
             }
         }
@@ -95,14 +94,7 @@ namespace prototype_p2p
             ServerInstance.AddWebSocketService<Server>("/Chain");
             ServerInstance.Start();
             serverInitAt = $"ws://{LocalIPAddress}:{Program.NetworkPort}" + " & " + $"ws://{externalIPAddress}:{ Program.NetworkPort}";
-            Console.WriteLine($"Server initialized at ws://{LocalIPAddress}:{Program.NetworkPort}" + " & " + $"ws://{externalIPAddress}:{ Program.NetworkPort}");
 
-            //LocalIPAddress = GetLocalIPAddress();
-            //ServerInstance = new WebSocketServer($"ws://{LocalIPAddress}:{Program.NetworkPort}");
-            //ServerInstance.AddWebSocketService<Server>("/Chain");
-            //ServerInstance.Start();
-            //serverInitAt = $"ws://{LocalIPAddress}:{Program.NetworkPort}";
-            //Console.WriteLine($"Server initialized at ws://{LocalIPAddress}:{Program.NetworkPort}");
         }
 
         protected override void OnMessage(MessageEventArgs e)
@@ -111,8 +103,9 @@ namespace prototype_p2p
             {
                 Console.WriteLine(e.Data);
                 Console.WriteLine(Context.UserEndPoint.Address.ToString());
-                //Console.WriteLine(Context.UserEndPoint.Port.ToString());
                 Send("Handshake to client");
+
+                // TODO: Implement safe method to append text to the status textbox from the main form, the current implementation caused a threading error during testing which has not been reproducible for now.
                 try
                 {
                     Program.genericGUIForm.richTextBoxStatusUpdates.AppendText(Context.UserEndPoint.Address.ToString() + " is connected to you!" + Environment.NewLine);
@@ -121,11 +114,11 @@ namespace prototype_p2p
                 {
                     if(f is InvalidOperationException)
                     {
-                        Console.WriteLine("Threading error: " + f);
+                        MessageBox.Show("Threading error: " + f.ToString());
                     }
                     else
                     {
-                        Console.WriteLine("Unexpected error: " + f);
+                        MessageBox.Show("Unexpected error: " + f.ToString());
                     }
                 }
             }

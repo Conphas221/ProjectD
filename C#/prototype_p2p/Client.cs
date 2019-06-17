@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Text;
 using WebSocketSharp;
+using System.Windows.Forms;
 
 namespace prototype_p2p
 {
@@ -58,9 +59,23 @@ namespace prototype_p2p
                 socket.OnClose += (sender, e) =>
                 {
                     Console.WriteLine(url+" : connection closed");
-                    Program.genericGUIForm.richTextBoxStatusUpdates.AppendText(
-                        url + " has fallen away. Nay!" + Environment.NewLine
-                        );
+
+                    try
+                    {
+                        Program.genericGUIForm.richTextBoxStatusUpdates.AppendText(url + " has fallen away. Nay!" + Environment.NewLine);
+                    }
+                    catch (Exception f)
+                    {
+                        if (f is InvalidOperationException)
+                        {
+                            MessageBox.Show("Threading error: " + f.ToString());
+                        }
+                        else
+                        {
+                            MessageBox.Show("Unexpected error: " + f.ToString());
+                        }
+                    }
+                    // Removes the node address if connecting with it fails.
                     socketDictionary.Remove(url);
                     return;
                 };
@@ -89,21 +104,20 @@ namespace prototype_p2p
                 socket.Send("Handshake to server");
                 socket.Send(JsonConvert.SerializeObject(Program.ProjectD));
                 socketDictionary.Add(url, socket);
-                Program.genericGUIForm.richTextBoxStatusUpdates.AppendText(
-                        url + " is now connected" + Environment.NewLine
-                        );
-
-            }
-        }
-
-
-        public void SendToOne(string url, string data)
-        {
-            foreach (var item in socketDictionary)
-            {
-                if (item.Key == url)
+                try
                 {
-                    item.Value.Send(data);
+                    Program.genericGUIForm.richTextBoxStatusUpdates.AppendText(url + " is now connected" + Environment.NewLine);
+                }
+                catch (Exception f)
+                {
+                    if (f is InvalidOperationException)
+                    {
+                        MessageBox.Show("Threading error: " + f.ToString());
+                    }
+                    else
+                    {
+                        MessageBox.Show("Unexpected error: " + f.ToString());
+                    }
                 }
             }
         }
@@ -114,16 +128,6 @@ namespace prototype_p2p
             {
                 item.Value.Send(data);
             }
-        }
-
-        public IList<string> LookupServers()
-        {
-            IList<string> serverList = new List<string>();
-            foreach (var item in socketDictionary)
-            {
-                serverList.Add(item.Key);
-            }
-            return serverList;
         }
 
         public void Exit()

@@ -44,7 +44,7 @@ namespace prototype_p2p
             string result = "";
             foreach(Block block in ChainList)
             {
-                result += block.readBlockPretty() + "\r\n";
+                result += block.ReadBlockPretty() + "\r\n";
             }
             return result;
         }

@@ -31,7 +31,6 @@ namespace prototype_p2p
 
             string TimeCodeString = TimeCode.ToString("yyyyMMddHHmmss");
             byte[] input = Encoding.ASCII.GetBytes($"{TimeCodeString}-{FormerHashcode ?? ""}-{JsonConvert.SerializeObject(MessageList)}");
-            //Console.WriteLine("De bytes zijn" + Encoding.Default.GetString(input));
             byte[] output = sha256.ComputeHash(input);
 
             return Convert.ToBase64String(output);
@@ -42,7 +41,7 @@ namespace prototype_p2p
             this.Hashcode = this.ComputeHashcode();
         }
 
-        public string readBlockPretty()
+        public string ReadBlockPretty()
         {
             string result = "";
             result += "Blocknumber: " + Number;
