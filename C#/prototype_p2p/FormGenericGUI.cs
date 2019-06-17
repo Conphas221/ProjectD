@@ -152,7 +152,7 @@ namespace prototype_p2p
                             string encryptedDataFromChain = Program.ProjectD.ChainList[blockNumerInt].MessageList[0].Data;
                             string privateKeyPathDecrypt = (Program.pathKeyPrivate + "\\" + comboBoxPrivateKeyDecryptDropDown.Text);
                             string publicKeyPathDecrypt = (Program.pathKeyPublic + "\\" + comboBoxPublicKeyDecryptDropDown.Text);
-                            DecryptAndVerifyString.Decrypt(encryptedDataFromChain, privateKeyPathDecrypt, publicKeyPathDecrypt, true);
+                            DecryptAndVerifyString.Decrypt(encryptedDataFromChain, privateKeyPathDecrypt, publicKeyPathDecrypt);
                         }
                     }
                     else
@@ -212,7 +212,7 @@ namespace prototype_p2p
                 inputData = Prompt.ShowDialog("Enter the data you want to encrypt", "Data entry");
             }
 
-            string encData = EncryptFileMultipleRecipients.MultiRecipientStringEncrypter(inputData, privKeyPath, recipientKeyPathsArr, true);
+            string encData = EncryptFileMultipleRecipients.MultiRecipientStringEncrypter(inputData, privKeyPath, recipientKeyPathsArr);
             Console.WriteLine(encData);
 
             Program.flushMsgAndSend.Flush(receiverNamesForImprovedMultiEnc, encData);

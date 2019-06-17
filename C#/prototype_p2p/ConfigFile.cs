@@ -73,13 +73,6 @@ namespace prototype_p2p
             throw new ApplicationException("Something went wrong with loading the config file data");
         }
 
-        public void WriteAllValuesConsole()
-        {
-            foreach (var pair in configSettings)
-            {
-                Console.WriteLine($"Setting:{pair.Key} Value:{pair.Value}");
-            }
-        }
 
         //checks if the values entered in the config file are valid and loads them
         private void LoadConfigValues()

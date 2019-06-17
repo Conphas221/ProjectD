@@ -36,30 +36,17 @@ namespace prototype_p2p
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Console.WriteLine("Default Public Keys directory exists:" + Directory.Exists(pathKeyPublic));
-            Console.WriteLine("Default Private Keys directory exists:" + Directory.Exists(pathKeyPrivate));
-            Console.WriteLine("Config.ini exists:" + File.Exists("Config.ini"));
 
             ConfigFile configData = new ConfigFile();
-            configData.WriteAllValuesConsole();
 
-            // The first if checks if the directory entered in the config file exists, the second checks the default location. The else if is there because of the directory location during development.
+            // Checks if the directory entered in the config file exists, and if it does not it creates the default directory.
             if (!Directory.Exists(pathKeyPublic))
             {
-                if (Directory.Exists(@"Keys\\Public"))
-                {
-                    pathKeyPublic = @"Keys\\Public";
-                }
-                else if (Directory.Exists(@"..\\..\\Keys\\Public"))
-                {
-                    pathKeyPublic = @"..\\..\\Keys\\Public";
-                }
-                else
-                {
-                    pathKeyPublic = @"Keys\\Public";
-                }
+                pathKeyPublic = @"Keys\\Public";
                 Directory.CreateDirectory(pathKeyPublic);
             }
+
+            // Creates the directories where the public keys of the roles with the same name should be placed.
             if (!Directory.Exists(pathKeyPublic + "\\Gemeente")|| !Directory.Exists(pathKeyPublic + "\\Politie") || !Directory.Exists(pathKeyPublic + "\\OM") || !Directory.Exists(pathKeyPublic + "\\Reclassering"))
             {
                 Directory.CreateDirectory(pathKeyPublic + "\\Gemeente");
@@ -68,65 +55,25 @@ namespace prototype_p2p
                 Directory.CreateDirectory(pathKeyPublic + "\\Reclassering");
             }
 
-            // The first if checks if the directory entered in the config file exists, the second checks the default location. The else if is there because of the directory location during development.
+            // Checks if the directory entered in the config file exists, and if it does not it creates the default directory.
             if (!Directory.Exists(pathKeyPrivate))
             {
-                if (Directory.Exists(@"Keys\\Private"))
-                {
-                    pathKeyPrivate = @"Keys\\Private";
-                }
-                else if (Directory.Exists(@"..\\..\\Keys\\Private"))
-                {
-                    pathKeyPrivate = @"..\\..\\Keys\\Private";
-                }
-                else
-                {
-                    pathKeyPrivate = @"Keys\\Private";
-                }
+                pathKeyPrivate = @"Keys\\Private";
                 Directory.CreateDirectory(pathKeyPrivate);
             }
 
             ParseKeyID keyIDPaths = new ParseKeyID(pathKeyPrivate, pathKeyPublic);
-            keyIDPaths.WriteLoadedKeyPaths();
 
             BootConfigurator bootConfigurator = new BootConfigurator();
 
+            // The boot configurator form only launches if one or more of the required values are not loaded from the config file.
             if (!existingRoles.Contains(currentRole) || !bootConfigurator.ValidatePortNumberEntry(NetworkPort.ToString()) || NodeName == "" || NodeName == "Unknown")
             {
                 Application.Run(bootConfigurator);
             }
             
 
-
-            while (NetworkPort == 0)
-            {
-                Console.Write("Enter network port: ");
-                if (int.TryParse(Console.ReadLine(), out int port)) //checks if the given input is a string. If not the user is told to enter a number. No more crashes because you accidently pressed enter.
-                {
-                    port = Math.Abs(port); //can't enter a negative number as a port now
-                    if (!portBlacklist.Contains(port)) //checks if the entered port is on the blacklist
-                    {
-                        NetworkPort = port;
-                        break;
-                    }
-                    Console.Write("Pick a port number that does not match any of the following: ");
-                    Console.WriteLine(string.Join<int>(", ", portBlacklist)); //lists all blacklisted ports to the user so he can avoid them.
-                    Console.Write("Enter network port: ");
-
-                }
-                else
-                {
-                    Console.WriteLine("A port has to be a number. Try again.");
-                }
-            }
-
-            if (NodeName == "Unknown" || NodeName == "")
-            {
-                Console.Write("Enter Node name: ");
-                NodeName = Console.ReadLine();
-            }
-
-            //Eerst ProjectD.ReadChain() --> Als geen resultaat, dan SetupChain()
+            // Attempts to load the saved chain, if no saved chain exists it creates a new one.
             ProjectD.ReadChain();
             if (ProjectD.ChainList == null)
             {
@@ -138,142 +85,15 @@ namespace prototype_p2p
                 ServerInstance = new Server();
                 ServerInstance.Initialize();
             }
-            if (NodeName != "Unkown")
-            {
-                Console.WriteLine($"Your node name is: {NodeName}");
-            }
 
             flushMsgAndSend = new FlushBlock(currentRole, ClientInstance); //Place this after the chain, clientinstance and nodename have been initialized.
 
-
-
             genericGUIForm = new FormGenericGUI(keyIDPaths, configData, ClientInstance, ServerInstance);
 
-            Console.WriteLine(currentRole);
+            // Launches the main form after all required values are entered in the BootConfigurator form.
             Application.Run(genericGUIForm);
 
-            Console.WriteLine("--------------------------------------");
-            Console.WriteLine("1. Setup a connection with a server");
-            Console.WriteLine("2. Add unencrypted data to chain");
-            Console.WriteLine("3. Display records");
-            Console.WriteLine("4. Exit the program");
-            Console.WriteLine("5. List all keys in the keys directory");
-            Console.WriteLine("7. Decrypt a stored message");
-            Console.WriteLine("8. Encrypt a message, multiple recipients supported, encryption key ID's are listed under 5");
-            Console.WriteLine("9. Toggle loading from config");
-            Console.WriteLine("10. List active connections");
-            Console.WriteLine("--------------------------------------");
-
-            int instruction = 0;
-            while (instruction != 4)
-            {
-                switch (instruction)
-                {
-                    case 1:
-                        Console.WriteLine("Enter the URL and port of the server:");
-                        string serverURL = Console.ReadLine();
-                        ClientInstance.Handshake($"{serverURL}/Chain");
-                        break;
-                    case 2:
-                        Console.Write("Enter the name(s) of the intended recipient(s): ");
-                        string receiverName = Console.ReadLine();
-                        string data = Prompt.ShowDialog("Enter the data", "Data entry");
-
-                        flushMsgAndSend.Flush(receiverName, data);
-                        break;
-                    case 3:
-                        Console.WriteLine("Chain");
-                        Console.WriteLine(JsonConvert.SerializeObject(ProjectD, Formatting.Indented));
-                        break;
-                    case 5:
-                        keyIDPaths.WriteLoadedKeyPaths();
-                        break;
-                    case 7:
-                        if (ProjectD.ChainList.Count > 1) //1 and not 0 because the genesis block counts as one.
-                        {
-                            int blockNumber = 0;
-                            while (blockNumber <= 0)
-                            {
-                                Console.Write("Enter the number of the block you want to decrypt: ");
-                                if (int.TryParse(Console.ReadLine(), out int inputBlockNumber)) //checks if the given input is a string. If not the user is told to enter a number. No more crashes because you accidently pressed enter.
-                                {
-
-                                    if (inputBlockNumber >= ProjectD.ChainList.Count)
-                                    {
-                                        Console.WriteLine("The number you enter must correspond to an existing block. Try again.");
-                                    }
-                                    else
-                                    {
-                                        blockNumber = Math.Abs(inputBlockNumber);
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("The number of the block has to be a number. Try again.");
-                                }
-                            }
-                            Console.WriteLine("Encrypted data:");
-
-                            string encryptedDataFromChain = ProjectD.ChainList[blockNumber].MessageList[0].Data;
-                            Console.WriteLine(encryptedDataFromChain);
-
-                            keyIDPaths.WriteLoadedKeyPaths(false,true);
-                            Console.Write("Enter the ID of the private key you want to use to decrypt: ");
-                            string privateKeyPathDecrypt = keyIDPaths.ParseAndReturnVerifiedKeyPath(); //the user looks up the private and public key ÏD's with the option 5 menu and then chooses the encryption keys with the ID"s linked to the keys.
-                            keyIDPaths.WriteLoadedKeyPaths(true, false);
-                            Console.Write("Enter the ID of the public key of the sender: ");
-                            string publicKeyPathDecrypt = keyIDPaths.ParseAndReturnVerifiedKeyPath(true);
-
-                            DecryptAndVerifyString.Decrypt(encryptedDataFromChain, privateKeyPathDecrypt, publicKeyPathDecrypt);
-                        }
-                        else
-                        {
-                            Console.WriteLine("There are no blocks to decrypt!");
-                        }
-                        break;
-                    case 8:
-
-                        Console.WriteLine("Enter the names of the designated recipients");
-                        string receiverNamesForImprovedMultiEnc = Console.ReadLine();
-
-                        keyIDPaths.WriteLoadedKeyPaths(false, true);
-                        Console.WriteLine("Enter the ID of the private key you want to sign with");
-                        string privKeyPath = keyIDPaths.ParseAndReturnVerifiedKeyPath();
-
-                        keyIDPaths.WriteLoadedKeyPaths(true, false);
-                        Console.WriteLine("Enter the public key ID's for every recipient");
-                        string[] recipientKeyPathsArr = keyIDPaths.BuildVerifiedKeyIdPathArray();
-
-                        string inputData = Prompt.ShowDialog("Enter the data you want to encrypt", "Data entry");
-
-                        string encData = EncryptFileMultipleRecipients.MultiRecipientStringEncrypter(inputData, privKeyPath, recipientKeyPathsArr);
-                        Console.WriteLine(encData);
-
-                        flushMsgAndSend.Flush(receiverNamesForImprovedMultiEnc, encData);
-                        break;
-                    case 9:
-
-                        configData.ToggleAutoLoadConfigValues();
-                        break;
-                    case (10):
-
-                        ClientInstance.PingAll();
-                        break;
-                }
-                        ProjectD.SaveChainStateToDisk(ProjectD);
-                        Console.Write("Enter the number of the action you want to execute: ");
-                        string action = Console.ReadLine();
-                        if (validActions.Contains(action))
-                        {
-                            instruction = int.Parse(action);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Please pick a valid action!");
-                            instruction = 0;
-                        }
-                        
-                }
+            // Saves the chain currently in memory after closing the main form.
             ProjectD.SaveChainStateToDisk(ProjectD);
 
             ClientInstance.Exit();
