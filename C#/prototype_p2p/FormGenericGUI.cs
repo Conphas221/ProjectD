@@ -234,7 +234,7 @@ namespace prototype_p2p
 
         private void ToggleLoadConfigSettings(object sender, EventArgs e)
         {
-            configData.ToggleAutoLoadConfigValues(true);
+            configData.ToggleAutoLoadConfigValues();
         }
 
         private void ConnectServer(object sender, EventArgs e)

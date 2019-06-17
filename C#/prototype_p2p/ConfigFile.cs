@@ -21,7 +21,6 @@ namespace prototype_p2p
             IsInitialized = true;
             
         }
-        // public static Dictionary<string, string> configSettings = new Dictionary<string, string>();
 
         private void InitConfigFile(bool reset = false)
         {
@@ -66,15 +65,17 @@ namespace prototype_p2p
                 }
                 return configSettings;
             }
-            catch (IOException e)
+            catch (Exception e)
             {
-                Console.WriteLine("The file could not be read:" + Environment.NewLine + e.Message);
+                MessageBox.Show(e.ToString());
             }
+
+            // Now all code paths return a value
             throw new ApplicationException("Something went wrong with loading the config file data");
         }
 
 
-        //checks if the values entered in the config file are valid and loads them
+        // Checks if the values entered in the config file are valid and loads them
         private void LoadConfigValues()
         {
             if (configSettings.TryGetValue("useConfigFile", out string value))
@@ -116,7 +117,7 @@ namespace prototype_p2p
                 }
             }
         }
-        public void ToggleAutoLoadConfigValues(bool gui = false)
+        public void ToggleAutoLoadConfigValues()
         {
             try
             {
@@ -144,24 +145,17 @@ namespace prototype_p2p
                         file.WriteLine("{0}{1}{2}", entry.Key, "=", entry.Value);
                     }
                 }
-                if (!gui)
-                {
-                    Console.WriteLine("Change will go in effect next application restart.");
-                }
-                else
-                {
-                    MessageBox.Show("Change will go in effect next application restart: "+ "useConfigFile = "+configSettings["useConfigFile"]);
-                }
+                MessageBox.Show("Change will go in effect next application restart: "+ "useConfigFile = "+configSettings["useConfigFile"]);
             }
             catch (Exception e)
             {
                 if (e is UnauthorizedAccessException)
                 {
-                    Console.WriteLine("No access authorization!");
+                    MessageBox.Show("No access authorization! " + e.ToString());
                 }
                 else
                 {
-                    MessageBox.Show("Exception occured: "+e);
+                    MessageBox.Show("Exception occured: " + e.ToString());
                 }
             }
         }
@@ -196,11 +190,11 @@ namespace prototype_p2p
             {
                 if (e is UnauthorizedAccessException)
                 {
-                    Console.WriteLine("No access authorization!");
+                    MessageBox.Show("No access authorization! " + e.ToString());
                 }
                 else
                 {
-                    MessageBox.Show("Exception occured: " + e);
+                    MessageBox.Show("Exception occured: " + e.ToString());
                 }
             }
         }
